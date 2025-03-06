@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGetAllItems } from '@/api/ItemApi';
-import { ItemCountry, KitType } from '@/types';
+import { useCart } from '@/context/CartContext';
+import { Item, ItemCountry, KitType } from '@/types';
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -21,11 +23,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShoppingCart } from 'lucide-react';
 
 const ItemsPage = () => {
   const { items, isLoading } = useGetAllItems();
-  console.log('Items from API:', items);
+  const { addToCart } = useCart();
 
   // Filter state
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
@@ -65,6 +67,11 @@ const ItemsPage = () => {
     Netherlands: '🇳🇱',
     Belgium: '🇧🇪',
     Israel: '🇮🇱',
+  };
+
+  // Handle adding item to cart with proper type
+  const handleAddToCart = (item: Item) => {
+    addToCart(item);
   };
 
   return (
@@ -153,59 +160,72 @@ const ItemsPage = () => {
         </Button>
       </div>
 
-      {/* Items grid */}
+      {/* Items table */}
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
-      ) : filteredItems.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredItems.map((item) => (
-            <Card
-              key={item.itemNumber}
-              className="overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div className="h-48 bg-gray-100 flex items-center justify-center">
-                <span className="text-6xl">
-                  {countryFlags[item.country] || '👕'}
-                </span>
-              </div>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                    {item.kitType}
-                  </span>
-                </div>
-                <CardDescription>
-                  {countryFlags[item.country]} {item.country} • Season:{' '}
-                  {item.season}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-2">
-                {item.description && (
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {item.description}
-                  </p>
-                )}
-              </CardContent>
-              <CardFooter className="flex justify-between items-center pt-2">
-                <span className="text-lg font-bold">
-                  ${item.price.toFixed(2)}
-                </span>
-                <Button>Add to Cart</Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
       ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-700">
-            No items found
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Try adjusting your filters or check back later
-          </p>
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <Table>
+            <TableCaption>
+              {filteredItems.length === 0
+                ? 'No items found. Try adjusting your filters.'
+                : `A list of ${filteredItems.length} ${
+                    filteredItems.length === 1 ? 'item' : 'items'
+                  }`}
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Item #</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>Kit Type</TableHead>
+                <TableHead>Season</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.map((item) => (
+                <TableRow key={item.itemNumber}>
+                  <TableCell className="font-medium">
+                    {item.itemNumber}
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div>{item.name}</div>
+                      {item.description && (
+                        <div className="text-sm text-gray-500">
+                          {item.description}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="flex items-center gap-1">
+                      {countryFlags[item.country]} {item.country}
+                    </span>
+                  </TableCell>
+                  <TableCell>{item.kitType}</TableCell>
+                  <TableCell>{item.season}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    ${item.price.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      onClick={() => handleAddToCart(item)}
+                      className="font-bold hover:bg-gray-200"
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

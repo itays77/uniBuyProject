@@ -3,6 +3,7 @@ import Layout from "./layouts/layout";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import ItemsPage from "./pages/ItemsPage";
+import CartPage from "./pages/CartPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
@@ -25,6 +26,14 @@ const AppRoutes = () => {
           </Layout>
         }
       />
+      <Route
+        path="/cart"
+        element={
+          <Layout>
+            <CartPage />
+          </Layout>
+        }
+      />
       <Route path="/auth-callback" element={<AuthCallbackPage />} />
 
       <Route element={<ProtectedRoute />}>
@@ -36,6 +45,7 @@ const AppRoutes = () => {
     </Routes>
   );
 };
+
 
 
 export default AppRoutes;
