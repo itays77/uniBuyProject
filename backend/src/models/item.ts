@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export enum ItemCountry {
+  Israel = 'Israel',
   England = 'England',
   Spain = 'Spain',
   Germany = 'Germany',
@@ -11,7 +12,6 @@ export enum ItemCountry {
   Portugal = 'Portugal',
   Netherlands = 'Netherlands',
   Belgium = 'Belgium',
-  Israel = 'Israel',
 }
 
 export enum KitType {
@@ -42,19 +42,21 @@ const itemSchema = new mongoose.Schema({
 });
 
 
-itemSchema.pre('save', function (next) {
+itemSchema.pre('save', async function (next) {
   const doc = this;
   if (!doc.itemNumber) {
-    mongoose
-      .model('Item')
-      .countDocuments()
-      .then((count) => {
-        doc.itemNumber = count + 1;
-        next();
-      })
-      .catch((error) => {
-        next(new Error(`Failed to generate itemNumber: ${error.message}`));
-      });
+    try {
+      // Find the highest existing item number
+      const highestItem = await mongoose
+        .model('Item')
+        .findOne({})
+        .sort({ itemNumber: -1 });
+
+      doc.itemNumber = highestItem ? highestItem.itemNumber + 1 : 1;
+      next();
+    } catch (error) {
+      next(error instanceof Error ? error : new Error(String(error)));
+    }
   } else {
     next();
   }

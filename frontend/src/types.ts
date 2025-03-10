@@ -1,10 +1,12 @@
-export type User = {
-  _id: string;
-  email: string;
-  name: string;
+// Add the OrderStatus enum to match the backend
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
 }
 
 export enum ItemCountry {
+  Israel = 'Israel',
   England = 'England',
   Spain = 'Spain',
   Germany = 'Germany',
@@ -15,7 +17,6 @@ export enum ItemCountry {
   Portugal = 'Portugal',
   Netherlands = 'Netherlands',
   Belgium = 'Belgium',
-  Israel = 'Israel',
 }
 
 export enum KitType {
@@ -24,12 +25,47 @@ export enum KitType {
   Third = 'Third',
 }
 
-export type Item = {
+export interface Item {
+  _id: string;
   itemNumber: string;
   name: string;
   price: number;
   description?: string;
-  country: ItemCountry;
-  kitType: KitType;
+  country: string;
+  kitType: string;
   season: string;
-};
+}
+
+export interface OrderItem {
+  itemNumber: string;
+  name: string;
+  price: number;
+  country: string;
+  kitType: string;
+  season: string;
+  quantity: number;
+}
+
+export interface Order {
+  _id: string;
+  orderNumber: string;
+  user: string;
+  status: OrderStatus;
+  items: OrderItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  paymentId?: string;
+  paymentSessionId?: string;
+  failureReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface User {
+  _id: string;
+  auth0Id: string;
+  email: string;
+  name?: string;
+  isAdmin: boolean;
+}

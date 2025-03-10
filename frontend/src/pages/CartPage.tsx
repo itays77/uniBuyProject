@@ -1,7 +1,16 @@
 import { useCart } from '@/context/CartContext';
+import { useCreateOrder, useCreateCheckoutSession } from '@/api/OrderApi';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag,
+  ArrowLeft,
+  CreditCard,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,6 +21,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 
 const CartPage = () => {
   const {
@@ -23,8 +33,12 @@ const CartPage = () => {
     tax,
     total,
   } = useCart();
-  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
   const navigate = useNavigate();
+  const { createOrder, isLoading: isCreatingOrder } = useCreateOrder();
+  const { createCheckoutSession, isLoading: isCreatingCheckoutSession } =
+    useCreateCheckoutSession();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleQuantityChange = (
     itemNumber: string,
@@ -34,16 +48,46 @@ const CartPage = () => {
     updateQuantity(itemNumber, currentQuantity + change);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!isAuthenticated) {
       loginWithRedirect({
-        appState: { returnTo: '/cart' }, // Redirect back to cart after login
+        appState: { returnTo: '/cart' },
       });
       return;
     }
 
-    // In a real app, this would navigate to checkout or process the order
-    alert('Checkout functionality will be implemented in the next phase');
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Step 1: Create the order
+      const orderItems = cartItems.map((item) => ({
+        itemNumber: item.itemNumber,
+        quantity: item.quantity,
+      }));
+
+      const order = await createOrder({ items: orderItems });
+      toast.success('Order created successfully!');
+
+      // Step 2: Create UniPaas checkout session
+      const checkoutSession = await createCheckoutSession({
+        orderId: order._id,
+        customerEmail: user?.email,
+      });
+
+      // Clear the cart when redirecting to payment
+      clearCart();
+
+      // Step 3: Redirect to UniPaas checkout page
+      window.location.href = checkoutSession.checkoutUrl;
+    } catch (error) {
+      toast.error('Failed to process checkout. Please try again.');
+      setIsProcessing(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -223,10 +267,19 @@ const CartPage = () => {
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={handleCheckout}>
-                Proceed to Checkout
+            <CardFooter className="flex flex-col gap-4">
+              <Button
+                className="w-full flex items-center justify-center gap-2"
+                onClick={handleCheckout}
+                disabled={isProcessing}
+              >
+                <CreditCard className="h-4 w-4" />
+                {isProcessing ? 'Processing...' : 'Checkout'}
               </Button>
+
+              <p className="text-xs text-gray-500 text-center">
+                Secure checkout powered by payment simulation
+              </p>
             </CardFooter>
           </Card>
         </div>
