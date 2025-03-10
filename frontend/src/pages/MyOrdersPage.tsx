@@ -67,7 +67,7 @@ interface Order {
 
 const MyOrdersPage = () => {
   const { orders, isLoading } = useGetMyOrders();
-  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
   const navigate = useNavigate();
 
   if (!isAuthenticated) {

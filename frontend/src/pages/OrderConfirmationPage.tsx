@@ -20,7 +20,6 @@ import {
   Loader2,
   AlertCircle,
   XCircle,
-  RefreshCw,
 } from 'lucide-react';
 import { OrderStatus } from '@/types';
 

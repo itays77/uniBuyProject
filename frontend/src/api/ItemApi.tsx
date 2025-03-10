@@ -70,7 +70,7 @@ export const useGetItemById = (id: string) => {
 export const useCreateItem = () => {
   const { getAccessTokenSilently } = useAuth0();
 
-  const createItemRequest = async (item: Omit<Item, 'itemNumber'>) => {
+  const createItemRequest = async (item: Omit<Item, '_id' | 'itemNumber'>) => {
     const accessToken = await getAccessTokenSilently();
     const response = await fetch(`${API_BASE_URL}/api/items`, {
       method: 'POST',

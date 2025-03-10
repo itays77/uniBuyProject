@@ -35,9 +35,8 @@ const CartPage = () => {
   } = useCart();
   const { isAuthenticated, loginWithRedirect, user } = useAuth0();
   const navigate = useNavigate();
-  const { createOrder, isLoading: isCreatingOrder } = useCreateOrder();
-  const { createCheckoutSession, isLoading: isCreatingCheckoutSession } =
-    useCreateCheckoutSession();
+  const { createOrder } = useCreateOrder();
+  const { createCheckoutSession } = useCreateCheckoutSession();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleQuantityChange = (
