@@ -1,10 +1,10 @@
-U# UniBuy Project
+# UniBuy Project
 
 A full-stack e-commerce application for football kits with integrated payment processing through UniPaas.
 
 ## Overview
 
-UniBuy is an e-commerce platform that allows users to browse and purchase authentic football jerseys from top national teams. The application features user authentication via Auth0, a product catalog, shopping cart functionality, and a checkout process with payment integration through UniPaas.
+UniBuy is an e-commerce platform that allows users to browse and purchase football jerseys. The application features user authentication via Auth0, a product catalog, shopping cart functionality, and a checkout process with payment integration through UniPaas.
 
 ## Features
 
@@ -58,10 +58,9 @@ The application is deployed on Render with the backend and frontend hosted separ
 
 ### Frontend Setup
 
-1. Clone the repository
-2. Enter the frontend dir 
-3. Install dependencies - npm install
-4. Create a `.env` file in the frontend directory and copy the correct values from the file
+1. Enter the frontend dir 
+2. Install dependencies - npm install
+3. Create a `.env` file in the frontend directory and copy the correct values from the file
 4. Start the frontend server - npm run dev (Will run on port 5173 by default.)
 
 ## Payment Integration
