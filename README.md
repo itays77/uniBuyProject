@@ -13,7 +13,6 @@ UniBuy is an e-commerce platform that allows users to browse and purchase authen
 * **Shopping cart** functionality
 * **Order management**
 * **Payment processing** through UniPaas
-* **Responsive design** for all devices
 
 ## Tech Stack
 
