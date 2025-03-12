@@ -61,7 +61,7 @@ export const useCreateOrder = () => {
   };
 };
 
-// Create a UniPaas checkout session (to be implemented later)
+
 export const useCreateCheckoutSession = () => {
   const { getAccessTokenSilently } = useAuth0();
 

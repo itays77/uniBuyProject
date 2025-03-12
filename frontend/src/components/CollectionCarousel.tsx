@@ -16,12 +16,14 @@ interface CollectionCarouselProps {
   items: Item[] | undefined;
   isLoading: boolean;
   title?: string;
+  hideViewDetails?: boolean;
 }
 
 const CollectionCarousel = ({
   items,
   isLoading,
   title = 'Our Collection',
+  hideViewDetails = false,
 }: CollectionCarouselProps) => {
   const navigate = useNavigate();
 
@@ -120,14 +122,16 @@ const CollectionCarousel = ({
               <CardContent>
                 <p className="text-2xl font-bold">${item.price.toFixed(2)}</p>
               </CardContent>
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  onClick={() => navigate(`/items/${item.itemNumber}`)}
-                >
-                  View Details
-                </Button>
-              </CardFooter>
+              {!hideViewDetails && (
+                <CardFooter>
+                  <Button
+                    className="w-full"
+                    onClick={() => navigate(`/items/${item.itemNumber}`)}
+                  >
+                    View Details
+                  </Button>
+                </CardFooter>
+              )}
             </Card>
           ))}
         </div>

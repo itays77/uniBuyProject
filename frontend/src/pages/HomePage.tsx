@@ -31,7 +31,11 @@ const HomePage = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
         {/* Collection Carousel */}
-        <CollectionCarousel items={items} isLoading={isLoading} />
+        <CollectionCarousel
+          items={items}
+          isLoading={isLoading}
+          hideViewDetails={true}
+        />
 
         {/* CTA Section */}
         <Card>

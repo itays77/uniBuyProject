@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { CheckCircle, XCircle } from 'lucide-react';
-import TestCardsInfo from '../components/TestCardsInfo ';
 import { toast } from 'sonner';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -114,7 +113,42 @@ const PaymentSimulationPage = () => {
               </div>
             </div>
 
-            <TestCardsInfo />
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h3 className="font-medium mb-2">
+                <span className="inline-flex items-center">
+                  Test Payment Environment
+                </span>
+              </h3>
+              <p className="text-sm text-gray-600">
+                This is a simulation environment. Use the buttons below to test
+                both successful and failed payment outcomes.
+              </p>
+            </div>
+
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h3 className="font-medium mb-1 flex items-center text-green-800">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Successful Payment
+              </h3>
+              <p className="text-sm text-green-700">
+                Clicking "Simulate Successful Payment" will process your order
+                successfully. The order status will be updated to "PAID" and
+                you'll see a confirmation screen.
+              </p>
+            </div>
+
+            <div className="p-4 bg-red-50 rounded-lg">
+              <h3 className="font-medium mb-1 flex items-center text-red-800">
+                <XCircle className="h-4 w-4 mr-2" />
+                Failed Payment
+              </h3>
+              <p className="text-sm text-red-700">
+                Clicking "Simulate Failed Payment" will simulate a payment
+                failure. The order status will be updated to "FAILED" with a
+                reason like "Insufficient funds" and you'll see the appropriate
+                error message.
+              </p>
+            </div>
           </div>
         </CardContent>
 

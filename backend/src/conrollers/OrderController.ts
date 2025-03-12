@@ -165,7 +165,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     // Return checkout URL
     res.status(200).json({
       checkoutUrl: sessionData.checkout_url,
-      sessionId: sessionData.id,
+      sessionId: sessionData.id, 
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
