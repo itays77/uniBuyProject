@@ -61,7 +61,7 @@ Some benefits of separate deployment (especially in e-commerce style project) ar
 
 1. Enter the frontend dir 
 2. Install dependencies - npm install
-3. Create a `.env` file in the frontend directory and copy the correct values from the text file
+3. Create a `.env` file in the frontend directory and copy the correct values from the text file 
 4. Start the frontend server - npm run dev (Will run on port 5173 by default.)
 
 ## Payment Integration
