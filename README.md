@@ -23,7 +23,6 @@ UniBuy is an e-commerce platform that allows users to browse and purchase footba
 * React Router
 * React Query
 * Shadcn UI components
-* Tailwind CSS
 
 ### Backend
 
@@ -41,6 +40,8 @@ The application is deployed on Render with the backend and frontend hosted separ
 * **Backend**: https://unibuyproject-backend.onrender.com
 * **Frontend**: https://unibuyproject-frontend.onrender.com
 
+Some benefits of separate deployment (especially in e-commerce style project) are Independent Scaling, Improved Testing and Better Developer Workflow.
+
 ## Local Setup
 
 ### Prerequisites
@@ -53,14 +54,14 @@ The application is deployed on Render with the backend and frontend hosted separ
 1. Clone the repository
 2. Enter the backend dir 
 3. Install dependencies - npm install
-4. Create a `.env` file in the backend directory - copy the correct values from the file
+4. Create a `.env` file in the backend directory and copy the correct values from the text file
 4. Start the backend server - npm run dev (Will run on port 8000 by default)
 
 ### Frontend Setup
 
 1. Enter the frontend dir 
 2. Install dependencies - npm install
-3. Create a `.env` file in the frontend directory and copy the correct values from the file
+3. Create a `.env` file in the frontend directory and copy the correct values from the text file
 4. Start the frontend server - npm run dev (Will run on port 5173 by default.)
 
 ## Payment Integration
@@ -71,7 +72,9 @@ In the deployed version, the application integrates with UniPaas webhook to simu
 1. A new order is created in the database with **PENDING** status
 2. The checkout session is created through UniPaas
 3. On successful payment, UniPaas sends a webhook notification to update the order status to **PAID**
-4. The user is redirected to the order confirmation page
+4. The user is redirected to the order confirmation page, which shows the appropriate status
+
+Before the app has been deployed, I used ngrok to expose my local dev enviroment and test the webhook flow.
 
 ### Local Development
 For local development and testing, a simulated payment process has been implemented:
@@ -93,6 +96,7 @@ For local development and testing, a simulated payment process has been implemen
 ### Backend Architecture
 * **MVC Pattern**: The backend follows a Model-View-Controller pattern for clean separation of concerns.
 * **RESTful API**: The API follows REST principles for consistent and predictable endpoints.
+* **Controller Separation:**: Different controllers for items, orders, and users keep code organized and maintainable.
 * **Middleware-Based Authentication**: JWT validation through middleware ensures protected routes.
 * **Mongoose for MongoDB**: Mongoose provides schema validation and a clean interface for MongoDB operations.
 
@@ -101,5 +105,13 @@ The UniPaas integration allows for a flexible payment solution:
 
 1. **Webhook-Based**: Updates order status through webhooks, ensuring accurate payment tracking even if the user closes the browser.
 2. **Simulation Mode**: For development and testing, a simulated payment flow allows for testing without actual payment processing.
-3. **Error Handling**: Comprehensive error handling for payment failures with appropriate user feedback.
+3. **Dual Implementation Strategy**: The app uses actual UniPaas API in production while providing a simulation mode for local development.
+4. **Error Handling**: Comprehensive error handling for payment failures with appropriate user feedback.
+
+## Security Considerations
+**JWT Authentication:**:  All protected routes require valid JWT tokens from Auth0.
+
+
+
+
 
