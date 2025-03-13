@@ -108,7 +108,7 @@ The UniPaas integration allows for a flexible payment solution:
 3. **Dual Implementation Strategy**: The app uses actual UniPaas API in production while providing a simulation mode for local development.
 4. **Error Handling**: Comprehensive error handling for payment failures with appropriate user feedback.
 
-## Security Considerations
+### Security Considerations
 **JWT Authentication:**:  All protected routes require valid JWT tokens from Auth0.
 
 
