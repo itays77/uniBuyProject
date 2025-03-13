@@ -91,12 +91,11 @@ For local development and testing, a simulated payment process has been implemen
 * **Component-Based Structure**: The frontend is organized into reusable components for maintainability.
 * **React Query**: Used for data fetching, caching, and state management to minimize API calls.
 * **Auth0 Integration**: Delegating authentication to Auth0 allows for secure user management without building custom auth.
-* **Responsive Design**: Tailwind CSS provides a responsive design system that adapts to different screen sizes.
 
 ### Backend Architecture
 * **MVC Pattern**: The backend follows a Model-View-Controller pattern for clean separation of concerns.
 * **RESTful API**: The API follows REST principles for consistent and predictable endpoints.
-* **Controller Separation:**: Different controllers for items, orders, and users keep code organized and maintainable.
+* **Controller Separation**: Different controllers for items, orders, and users keep code organized and maintainable.
 * **Middleware-Based Authentication**: JWT validation through middleware ensures protected routes.
 * **Mongoose for MongoDB**: Mongoose provides schema validation and a clean interface for MongoDB operations.
 
