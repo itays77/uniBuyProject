@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user';
 
+// Get the current user
 const getCurrentUser = async (req: Request, res: Response) => {
   try {
     // req.auth0Id is set by your jwtParse middleware
@@ -16,7 +17,6 @@ const getCurrentUser = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Return the user data
     res.status(200).json(currentUser);
   } catch (error) {
     console.error('Error getting user:', error);
@@ -24,13 +24,13 @@ const getCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
+// Create a new user
 const createCurrentUser = async (req: Request, res: Response) => {
   try {
     const { auth0Id } = req.body;
     const existingUser = await User.findOne({ auth0Id });
 
     if (existingUser) {
-      // Return the existing user
       return res.status(200).json(existingUser);
     }
 

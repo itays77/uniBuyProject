@@ -34,7 +34,7 @@ const formatDate = (dateString: string | undefined): string => {
 
   const date = new Date(dateString);
 
-  // Check if date is valid
+  
   if (isNaN(date.getTime())) return 'N/A';
 
   const options: Intl.DateTimeFormatOptions = {

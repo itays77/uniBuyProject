@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 export enum OrderStatus {
-  PENDING = 'PENDING', // Initial status when order is created
-  PAID = 'PAID', // Order has been paid via UniPaas
-  FAILED = 'FAILED', // Payment failed
+  PENDING = 'PENDING', 
+  PAID = 'PAID', 
+  FAILED = 'FAILED', 
 }
 
 const orderItemSchema = new mongoose.Schema({

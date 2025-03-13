@@ -4,7 +4,7 @@ import Order, { OrderStatus } from '../models/order';
 import Item from '../models/item';
 import { createHmac } from 'crypto';
 
-// Create a new order (initial step before payment)
+// Create a new order
 const createOrder = async (req: Request, res: Response) => {
   try {
     const { items } = req.body;
@@ -20,7 +20,6 @@ const createOrder = async (req: Request, res: Response) => {
         .json({ message: 'Order must include at least one item' });
     }
 
-    // Validate and get current info for all items
     const itemNumbers = items.map((item) => item.itemNumber);
     const itemsFromDB = await Item.find({ itemNumber: { $in: itemNumbers } });
 
@@ -28,13 +27,11 @@ const createOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'One or more items not found' });
     }
 
-    // Calculate order totals
     const orderItems = items.map((orderItem) => {
       const dbItem = itemsFromDB.find(
         (item) => item.itemNumber === orderItem.itemNumber
       );
 
-      // Add null check
       if (!dbItem) {
         throw new Error(`Item not found: ${orderItem.itemNumber}`);
       }
@@ -55,7 +52,7 @@ const createOrder = async (req: Request, res: Response) => {
       0
     );
 
-    const taxRate = 0.07; // 7% tax rate
+    const taxRate = 0.07; 
     const tax = subtotal * taxRate;
     const total = subtotal + tax;
 
@@ -116,7 +113,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       currency: 'USD',
     }));
 
-    // Add tax as a separate line item
+    
     lineItems.push({
       name: 'Tax',
       description: '7% Sales Tax',
@@ -125,7 +122,6 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       currency: 'USD',
     });
 
-    // Create payment session with UniPaas
     // Ensure this matches the actual UniPaas API endpoints and payload requirements
     const unipaasUrl = 'https://api.sandbox.unipaas.com/v1/checkout-sessions';
     console.log(`Making request to UniPaas API: ${unipaasUrl}`);

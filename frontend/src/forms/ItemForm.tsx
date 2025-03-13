@@ -60,8 +60,8 @@ const ItemForm = () => {
       name: "",
       price: 0,
       description: "",
-      country: undefined, // Initialize with undefined for Select component
-      kitType: undefined, // Initialize with undefined for Select component
+      country: undefined, 
+      kitType: undefined, 
       season: "",
     },
   })

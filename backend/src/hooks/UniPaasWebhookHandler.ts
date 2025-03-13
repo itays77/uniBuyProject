@@ -76,10 +76,7 @@ async function handlePaymentSucceeded(data: any) {
 
     console.log(`Order ${orderId} marked as PAID`);
 
-    // Here you could trigger other actions:
-    // - Send order confirmation email
-    // - Update inventory
-    // - Notify other systems
+  
   } catch (error) {
     console.error('Error processing payment/succeeded webhook:', error);
   }
@@ -95,11 +92,9 @@ async function handlePaymentFailed(data: any) {
       return;
     }
 
-    // For failed payments, we keep the order as PENDING
-    // You might want to add a flag or note to the order
+    // For failed payments,  keep the order as PENDING
     console.log(`Payment failed for order ${orderId}, status remains PENDING`);
 
-    // You might want to notify the customer about the failed payment
   } catch (error) {
     console.error('Error processing payment/failed webhook:', error);
   }
