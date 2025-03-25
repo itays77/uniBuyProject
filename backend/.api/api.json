@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "unipaas",
+      "source": "@unipaas/v3.0#75lfm78u3awm",
+      "integrity": "sha512-HyopRWKMOmS3IrS/jfdoSpGodt6gbXullxhkxU5/5uTg8t6WLvvBx5YVe39J29T3yrY6Nz3QngOTjNKCGXK37w==",
+      "installerVersion": "6.1.3"
+    }
+  ]
+}

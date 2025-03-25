@@ -3,7 +3,6 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useMutation, useQuery } from 'react-query';
 import { toast } from 'sonner';
 
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 type CreateOrderRequest = {
@@ -19,8 +18,11 @@ type CreateCheckoutSessionRequest = {
 };
 
 type CheckoutSessionResponse = {
-  checkoutUrl: string;
+  sessionToken: string;
   sessionId: string;
+  shortLink?: string; 
+  checkoutUrl?: string; 
+  fallbackMode?: boolean; 
 };
 
 // Create a new order
@@ -60,7 +62,6 @@ export const useCreateOrder = () => {
     isSuccess,
   };
 };
-
 
 export const useCreateCheckoutSession = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -138,7 +139,6 @@ export const useGetMyOrders = () => {
   return { orders, isLoading, refetch };
 };
 
-
 // Get a specific order by ID
 export const useGetOrderById = (id: string) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -171,5 +171,3 @@ export const useGetOrderById = (id: string) => {
 
   return { order, isLoading };
 };
-
-

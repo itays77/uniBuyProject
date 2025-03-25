@@ -3,11 +3,11 @@ import { jwtCheck, jwtParse } from '../middleware/auth';
 import OrderController from '../conrollers/OrderController';
 import {
   testUniPaasConnection,
-  createCheckoutSession,
   unipaasWebhookHandler,
   simulatePaymentSuccess,
   simulatePaymentFailure,
 } from '../conrollers/UniPaasTestController';
+
 
 const router = express.Router();
 
@@ -47,7 +47,7 @@ router.get('/:id', OrderController.getOrderById as RequestHandler);
 // Updated checkout route using the simplified UNIPaaS integration
 router.post(
   '/checkout/create-checkout-session',
-  createCheckoutSession as RequestHandler
+  OrderController.createCheckoutSession as RequestHandler
 );
 
 // Simulate payment endpoints (for testing)

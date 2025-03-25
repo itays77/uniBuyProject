@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   ArrowLeft,
   CreditCard,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +34,7 @@ const CartPage = () => {
     tax,
     total,
   } = useCart();
-  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0();
   const navigate = useNavigate();
   const { createOrder } = useCreateOrder();
   const { createCheckoutSession } = useCreateCheckoutSession();
@@ -47,7 +48,7 @@ const CartPage = () => {
     updateQuantity(itemNumber, currentQuantity + change);
   };
 
-  const handleCheckout = async () => {
+  const handleInitiateCheckout = async () => {
     if (!isAuthenticated) {
       loginWithRedirect({
         appState: { returnTo: '/cart' },
@@ -72,22 +73,44 @@ const CartPage = () => {
       const order = await createOrder({ items: orderItems });
       toast.success('Order created successfully!');
 
-      // Step 2: Create UniPaas checkout session
-      const checkoutSession = await createCheckoutSession({
+      // Step 2: Create checkout session
+      const session = await createCheckoutSession({
         orderId: order._id,
         customerEmail: user?.email,
       });
 
-      // Clear the cart when redirecting to payment
-      clearCart();
+      console.log('Checkout session created:', session);
 
-      // Step 3: Redirect to UniPaas checkout page
-      window.location.href = checkoutSession.checkoutUrl;
+      // Always use the redirect approach
+      if (session.shortLink) {
+        // Use UniPaas hosted checkout - most reliable option
+        console.log('Redirecting to UniPaas checkout:', session.shortLink);
+        clearCart();
+        window.location.href = session.shortLink;
+      } else if (session.checkoutUrl) {
+        // Use simulation page as fallback
+        console.log('Redirecting to simulation page:', session.checkoutUrl);
+        clearCart();
+        window.location.href = session.checkoutUrl;
+      } else {
+        throw new Error('No valid checkout URL received');
+      }
     } catch (error) {
+      console.error('Failed to process checkout:', error);
       toast.error('Failed to process checkout. Please try again.');
       setIsProcessing(false);
     }
   };
+
+  // Show loading state while Auth0 initializes
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-12 px-4 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        <p className="mt-2">Loading...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -143,6 +166,7 @@ const CartPage = () => {
     );
   }
 
+  // Show the regular cart view
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
@@ -269,15 +293,15 @@ const CartPage = () => {
             <CardFooter className="flex flex-col gap-4">
               <Button
                 className="w-full flex items-center justify-center gap-2"
-                onClick={handleCheckout}
+                onClick={handleInitiateCheckout}
                 disabled={isProcessing}
               >
                 <CreditCard className="h-4 w-4" />
-                {isProcessing ? 'Processing...' : 'Checkout'}
+                {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
               </Button>
 
               <p className="text-xs text-gray-500 text-center">
-                Secure checkout powered by payment simulation
+                Secure checkout powered by UniPaas
               </p>
             </CardFooter>
           </Card>

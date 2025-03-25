@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import Order, { OrderStatus } from '../models/order';
 import Item from '../models/item';
+import User from '../models/user';
 import { createHmac } from 'crypto';
 
 // Create a new order
@@ -52,9 +53,20 @@ const createOrder = async (req: Request, res: Response) => {
       0
     );
 
-    const taxRate = 0.07; 
+    const taxRate = 0.07;
     const tax = subtotal * taxRate;
     const total = subtotal + tax;
+
+    console.log(
+      'Item details:',
+      orderItems.map((item) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        lineTotal: item.price * item.quantity,
+      }))
+    );
+
 
     // Create the order with PENDING status
     const newOrder = new Order({
@@ -69,12 +81,13 @@ const createOrder = async (req: Request, res: Response) => {
     await newOrder.save();
 
     res.status(201).json(newOrder);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating order:', error);
     res.status(500).json({ message: 'Error creating order' });
   }
 };
 
+// Create checkout session with UniPaas
 // Create checkout session with UniPaas
 const createCheckoutSession = async (req: Request, res: Response) => {
   try {
@@ -104,77 +117,96 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         .json({ message: 'Not authorized to access this order' });
     }
 
-    // Create line items for the checkout
-    const lineItems = order.items.map((item) => ({
-      name: item.name,
-      description: `${item.country} ${item.kitType} - ${item.season}`,
-      amount: Math.round(item.price * 100), // Convert to cents
-      quantity: item.quantity,
-      currency: 'USD',
-    }));
+    // Get user details for the checkout
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    
-    lineItems.push({
-      name: 'Tax',
-      description: '7% Sales Tax',
-      amount: Math.round(order.tax * 100), // Convert to cents
-      quantity: 1,
-      currency: 'USD',
+    console.log('Processing order for checkout:', {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      total: order.total,
     });
 
-    // Ensure this matches the actual UniPaas API endpoints and payload requirements
-    const unipaasUrl = 'https://api.sandbox.unipaas.com/v1/checkout-sessions';
-    console.log(`Making request to UniPaas API: ${unipaasUrl}`);
+    try {
+      // Create a payment with UniPaas API to get the session token
+      const unipaasUrl = 'https://sandbox.unipaas.com/platform/pay-ins/checkout';
+      console.log(`Creating UniPaas checkout session: ${unipaasUrl}`);
+      console.log('Using API key:', process.env.UNIPAAS_API_KEY ? process.env.UNIPAAS_API_KEY.substring(0, 5) + '...' : 'Not set');
 
-    const response = await axios.post(
-      unipaasUrl,
-      {
-        total_amount: Math.round(order.total * 100), // Total in cents
+      const payload = {
+        amount: order.total,
         currency: 'USD',
-        merchant_reference: order.orderNumber,
-        customer_email: customerEmail || '',
+        country: 'US',
+        reference: order.orderNumber,
+        email: customerEmail || user.email,
+        description: `Order ${order.orderNumber}`,
         success_url: `${process.env.FRONTEND_URL}/order-confirmation/${order._id}`,
         cancel_url: `${process.env.FRONTEND_URL}/cart`,
-        line_items: lineItems,
+        consumer: {
+          name: user.name || 'Customer',
+          reference: user._id.toString(),
+        },
         metadata: {
           orderId: order._id.toString(),
         },
-        // Add payment_methods if you want to limit to specific methods
-        payment_methods: ['card'], // This ensures credit card option is available
-        // Add test_mode flag for sandbox
-        test_mode: true,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.UNIPAAS_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
+      };
+
+      console.log('UniPaas payload:', JSON.stringify(payload));
+
+      const response = await axios.post(
+        unipaasUrl,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.UNIPAAS_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('UniPaas response:', response.data);
+      
+      // Update the order with the session ID
+      order.paymentSessionId = response.data.id;
+      await order.save();
+
+      // Return both sessionToken and shortLink to the frontend
+      res.status(200).json({
+        sessionToken: response.data.sessionToken,
+        sessionId: response.data.id,
+        shortLink: response.data.shortLink, // Add this for redirect fallback
+      });
+    } catch (error: any) {
+      console.error('Error with UniPaas API:', error);
+      if (error.response) {
+        console.error('Error response status:', error.response.status);
+        console.error('Error response data:', error.response.data);
       }
-    );
+      
+      // Fall back to simulation mode if UniPaas API fails
+      console.log('Falling back to payment simulation mode');
+      const paymentSessionId = `direct_${Date.now()}`;
+      order.paymentSessionId = paymentSessionId;
+      await order.save();
 
-    const sessionData = response.data;
+      const checkoutUrl = `${process.env.FRONTEND_URL}/payment-simulation?orderId=${
+        order._id
+      }&amount=${order.total.toFixed(2)}&reference=${
+        order.orderNumber
+      }`;
 
-    // Update the order with the session ID
-    order.paymentSessionId = sessionData.id;
-    await order.save();
+      console.log(`Generated fallback checkout URL: ${checkoutUrl}`);
 
-    // Return checkout URL
-    res.status(200).json({
-      checkoutUrl: sessionData.checkout_url,
-      sessionId: sessionData.id, 
-    });
-  } catch (error) {
-    console.error('Error creating checkout session:', error);
-
-    // Check for specific API errors
-    if (axios.isAxiosError(error) && error.response) {
-      console.error('UniPaas API error:', error.response.data);
-      return res.status(error.response.status).json({
-        message: 'Payment gateway error',
-        details: error.response.data,
+      res.status(200).json({
+        checkoutUrl: checkoutUrl,
+        sessionId: paymentSessionId,
+        fallbackMode: true,
       });
     }
-
+  } catch (error: any) {
+    console.error('Error creating checkout session:', error);
     res.status(500).json({ message: 'Error creating checkout session' });
   }
 };
@@ -191,34 +223,40 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
 
     // For webhook processing, we need to ensure the body is parsed correctly
     let webhookData = body;
+    console.log('Complete webhook data:', JSON.stringify(webhookData, null, 2));
 
     // If body is a Buffer (from express.raw middleware), parse it
     if (Buffer.isBuffer(webhookData)) {
       try {
+        console.log(
+          'Complete webhook data:',
+          JSON.stringify(webhookData, null, 2)
+        );
         webhookData = JSON.parse(webhookData.toString('utf8'));
-      } catch (e) {
+      } catch (e: any) {
         console.error('Failed to parse webhook payload:', e);
         return res.status(400).json({ error: 'Invalid JSON payload' });
       }
     }
 
-    // Verify the webhook signature
-    const hash = createHmac('sha256', process.env.UNIPAAS_SECRET_KEY as string)
-      .update(
-        typeof webhookData === 'string'
-          ? webhookData
-          : JSON.stringify(webhookData)
-      )
-      .digest('hex');
-    const buff = Buffer.from(hash);
-    const calculated = buff.toString('base64');
+    // Verify the webhook signature if it exists
+    if (signedHeader && process.env.UNIPAAS_SECRET_KEY) {
+      const hash = createHmac('sha256', process.env.UNIPAAS_SECRET_KEY)
+        .update(
+          typeof webhookData === 'string'
+            ? webhookData
+            : JSON.stringify(webhookData)
+        )
+        .digest('hex');
+      const buff = Buffer.from(hash);
+      const calculated = buff.toString('base64');
 
-    // If signature doesn't match, log but still accept the webhook
-    // (in sandbox environment, signature validation may not always work as expected)
-    if (calculated !== signedHeader) {
-      console.warn(
-        'Warning: Failed to verify webhook signature - accepting anyway in sandbox mode'
-      );
+      // If signature doesn't match, log but still accept the webhook in dev environment
+      if (calculated !== signedHeader) {
+        console.warn(
+          'Warning: Failed to verify webhook signature - accepting anyway in development mode'
+        );
+      }
     }
 
     console.log('Processing webhook event:', {
@@ -227,7 +265,10 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     });
 
     // Process webhook based on its type
-    if (webhookData.type === 'payment/succeeded') {
+    if (
+      webhookData.type === 'payment/succeeded' ||
+      webhookData.type === 'payment.succeeded'
+    ) {
       // Extract order ID from metadata
       const orderId = webhookData.data?.metadata?.orderId;
 
@@ -237,7 +278,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
           orderId,
           {
             status: OrderStatus.PAID,
-            paymentId: webhookData.data.id,
+            paymentId: webhookData.data.id || `webhook_${Date.now()}`,
           },
           { new: true }
         );
@@ -250,12 +291,25 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       } else {
         console.error('No orderId found in payment/succeeded webhook metadata');
       }
-    } else if (webhookData.type === 'payment/failed') {
+    } else if (
+      webhookData.type === 'payment/failed' ||
+      webhookData.type === 'payment.failed'
+    ) {
       // Handle failed payment
       const orderId = webhookData.data?.metadata?.orderId;
       if (orderId) {
         console.log(`Payment failed for order ${orderId}`);
-        // You might want to update the order with a failed status or flag
+
+        // Update the order with FAILED status
+        await Order.findByIdAndUpdate(
+          orderId,
+          {
+            status: OrderStatus.FAILED,
+            failureReason:
+              webhookData.data.reason || 'Payment processing failed',
+          },
+          { new: true }
+        );
       }
     } else {
       console.log(`Unhandled webhook type: ${webhookData.type}`);
@@ -263,7 +317,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
 
     // Always respond with 200 to acknowledge receipt
     res.status(200).json({ received: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error handling webhook:', error);
 
     // Still return 200 to prevent UniPaas from retrying
@@ -286,7 +340,7 @@ const getMyOrders = async (req: Request, res: Response) => {
 
     const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
     res.status(200).json(orders);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting orders:', error);
     res.status(500).json({ message: 'Error getting orders' });
   }
@@ -316,7 +370,7 @@ const getOrderById = async (req: Request, res: Response) => {
     }
 
     res.status(200).json(order);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting order:', error);
     res.status(500).json({ message: 'Error getting order' });
   }
