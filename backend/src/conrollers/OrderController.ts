@@ -67,7 +67,6 @@ const createOrder = async (req: Request, res: Response) => {
       }))
     );
 
-
     // Create the order with PENDING status
     const newOrder = new Order({
       user: userId,
@@ -87,7 +86,6 @@ const createOrder = async (req: Request, res: Response) => {
   }
 };
 
-// Create checkout session with UniPaas
 // Create checkout session with UniPaas
 const createCheckoutSession = async (req: Request, res: Response) => {
   try {
@@ -136,14 +134,12 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       console.log('Using API key:', process.env.UNIPAAS_API_KEY ? process.env.UNIPAAS_API_KEY.substring(0, 5) + '...' : 'Not set');
 
       const payload = {
-        amount: order.total,
+        amount: Math.round(order.total),
         currency: 'USD',
-        country: 'US',
+        country: 'US', // You can adjust based on user location
         reference: order.orderNumber,
         email: customerEmail || user.email,
         description: `Order ${order.orderNumber}`,
-        success_url: `${process.env.FRONTEND_URL}/order-confirmation/${order._id}`,
-        cancel_url: `${process.env.FRONTEND_URL}/cart`,
         consumer: {
           name: user.name || 'Customer',
           reference: user._id.toString(),
