@@ -140,8 +140,8 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         reference: order.orderNumber,
         email: customerEmail || user.email,
         description: `Order ${order.orderNumber}`,
-        success_url: `${process.env.FRONTEND_URL}/order-confirmation/${order._id}`,
-        cancel_url: `${process.env.FRONTEND_URL}/cart`,
+        // success_url: `${process.env.FRONTEND_URL}/order-confirmation/${order._id}`,
+        // cancel_url: `${process.env.FRONTEND_URL}/cart`,
 
         consumer: {
           name: user.name || 'Customer',
@@ -266,10 +266,15 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     // Process webhook based on its type
     if (
       webhookData.type === 'payment/succeeded' ||
-      webhookData.type === 'payment.succeeded'
+      webhookData.type === 'payment.succeeded' ||
+      webhookData.type === 'Charge'
     ) {
       // Extract order ID from metadata
-      const orderId = webhookData.data?.metadata?.orderId;
+        const orderId =
+          webhookData.data?.metadata?.orderId ||
+          webhookData.metadata?.orderId ||
+          webhookData.data?.orderId ||
+          webhookData.orderId;
 
       if (orderId) {
         // Update the order status to PAID
