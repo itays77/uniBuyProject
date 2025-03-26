@@ -8,7 +8,7 @@ const CheckoutPage = () => {
   const { orderId } = useParams();
   const [searchParams] = useSearchParams();
   const sessionToken = searchParams.get('token');
-  const { order, isLoading } = useGetOrderById(orderId || '');
+  const { isLoading } = useGetOrderById(orderId || '');
 
   if (isLoading) {
     return (
