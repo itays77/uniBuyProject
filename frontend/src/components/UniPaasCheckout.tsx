@@ -39,7 +39,7 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
         console.log('Loading UniPaas script...');
         const script = document.createElement('script');
         script.id = 'unipaas-script';
-        script.src = 'https://cdn.unipaas.com/checkout-embedded.sandbox.js'; // Use this exact URL
+        script.src = 'https://cdn.unipaas.com/checkout-embedded.sandbox.js'; 
         script.type = 'application/javascript';
         script.async = true;
 
@@ -104,7 +104,7 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
           },
         };
 
-        // Initialize components - IMPORTANT: Use components not buyerComponents per documentation
+        // Initialize components 
         console.log('Creating components with session token');
         const components = window.unipaas.components(sessionToken, config);
 
@@ -127,7 +127,6 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
         components.on('paymentCancel', (e: any) => {
           console.log('Payment cancelled:', e.detail);
           toast.info('Payment was cancelled');
-          // Add this line to navigate back to cart when payment is cancelled
           navigate('/cart');
         });
 
@@ -152,7 +151,6 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
 
     initializeCheckout();
 
-    // Cleanup when component unmounts
     return () => {
       mountedRef.current = false;
     };
@@ -181,7 +179,6 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
   );
 };
 
-// Define the global unipaas interface
 declare global {
   interface Window {
     unipaas: any;

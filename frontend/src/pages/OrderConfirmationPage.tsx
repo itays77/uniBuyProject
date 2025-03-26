@@ -66,14 +66,12 @@ const OrderConfirmationPage = () => {
 
   // Check if user has permission to view this order
   useEffect(() => {
-    // Only run this check when we have both order and user data
     if (!isOrderLoading && !isUserLoading && order && currentUser) {
       // Compare MongoDB IDs (convert both to strings to ensure format matching)
       const orderUserId = String(order.user);
       const currentUserId = String(currentUser._id);
 
       if (orderUserId !== currentUserId) {
-        // User ID mismatch - this order doesn't belong to the current user
         if (process.env.NODE_ENV === 'production') {
           toast.error("You don't have permission to view this order");
           navigate('/');
@@ -86,7 +84,7 @@ const OrderConfirmationPage = () => {
 
   const { updateOrderStatus } = useUpdateOrderStatus();
 
-  // In useEffect to handle redirect from payment
+  
   useEffect(() => {
     const handlePaymentRedirect = async () => {
       if (
@@ -108,7 +106,6 @@ const OrderConfirmationPage = () => {
     handlePaymentRedirect();
   }, [orderId, order, isOrderLoading]);
 
-  // Handle not authenticated case
   if (!isAuthenticated) {
     return (
       <div className="container mx-auto py-12 px-4 text-center">

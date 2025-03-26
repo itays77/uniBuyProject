@@ -134,9 +134,9 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       console.log('Using API key:', process.env.UNIPAAS_API_KEY ? process.env.UNIPAAS_API_KEY.substring(0, 5) + '...' : 'Not set');
 
       const payload = {
-        amount: Math.round(order.total), // Convert to cents
+        amount: Math.round(order.total), 
         currency: 'USD',
-        country: 'US', // You can adjust based on user location
+        country: 'US', 
         reference: order.orderNumber,
         email: customerEmail || user.email,
         description: `Order ${order.orderNumber}`,
@@ -175,7 +175,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       res.status(200).json({
         sessionToken: response.data.sessionToken,
         sessionId: response.data.id,
-        shortLink: response.data.shortLink, // Add this for redirect fallback
+        shortLink: response.data.shortLink, 
       });
     } catch (error: any) {
       console.error('Error with UniPaas API:', error);
@@ -184,7 +184,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         console.error('Error response data:', error.response.data);
       }
       
-      // Fall back to simulation mode if UniPaas API fails
+      // If UniPaas API fails
       console.log('Falling back to payment simulation mode');
       const paymentSessionId = `direct_${Date.now()}`;
       order.paymentSessionId = paymentSessionId;
@@ -210,7 +210,6 @@ const createCheckoutSession = async (req: Request, res: Response) => {
   }
 };
 
-// UniPaas webhook handler
 // UniPaas webhook handler
 const unipaasWebhookHandler = async (req: Request, res: Response) => {
   try {
@@ -263,11 +262,10 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     });
 
     // Process webhook based on its type
-    // In your OrderController.ts, update the unipaasWebhookHandler function
       if (
         webhookData.type === 'payment/succeeded' ||
         webhookData.type === 'payment.succeeded' ||
-        webhookData.type === 'Charge'  // Add this case for handling Charge events
+        webhookData.type === 'Charge'  
       ) {
         // For Charge events, the orderId might be in metadata
         const orderId = webhookData.data?.metadata?.orderId || 

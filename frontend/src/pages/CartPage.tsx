@@ -88,7 +88,7 @@ const CartPage = () => {
       // Clear the cart since order is created
       clearCart();
 
-      // IMPORTANT: Handle different response types from checkout session
+      //Handle different response types from checkout session
       if (session.shortLink) {
         // Option 1: Use the direct link to UniPaas hosted checkout (most reliable)
         console.log('Redirecting to UniPaas checkout:', session.shortLink);
@@ -124,7 +124,7 @@ const CartPage = () => {
     }
   };
 
-  // Show loading state while Auth0 initializes
+  
   if (isLoading) {
     return (
       <div className="container mx-auto py-12 px-4 text-center">
@@ -188,7 +188,7 @@ const CartPage = () => {
     );
   }
 
-  // Show the regular cart view
+  
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
