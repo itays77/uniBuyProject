@@ -270,30 +270,32 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     ) {
       // Look for orderId in multiple possible locations
       const orderId = webhookData.data?.metadata?.orderId || 
-                      webhookData.metadata?.orderId ||
-                      webhookData.orderId;
+                  webhookData.metadata?.orderId ||
+                  webhookData.orderId;
 
-      if (orderId) {
-        // Update the order status to PAID
-        const updatedOrder = await Order.findByIdAndUpdate(
-          orderId,
-          {
-            status: OrderStatus.PAID,
-            paymentId: webhookData.data?.id || webhookData.id || `webhook_${Date.now()}`,
-          },
-          { new: true }
-        );
+  if (orderId) {
+    console.log(`Updating order ${orderId} to PAID status from ${webhookData.type} event`);
+    // Update the order status to PAID
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      {
+        status: OrderStatus.PAID,
+        paymentId: webhookData.data?.id || webhookData.id || `webhook_${Date.now()}`,
+      },
+      { new: true }
+    );
 
-        if (updatedOrder) {
-          console.log(`Order ${orderId} marked as PAID`);
-        } else {
-          console.error(`Order ${orderId} not found for payment update`);
-        }
-      } else {
-        console.error('No orderId found in webhook data');
-        // Log the structure to help debugging
-        console.log('Webhook data structure:', JSON.stringify(webhookData, null, 2));
-      }
+    if (updatedOrder) {
+      console.log(`Order ${orderId} marked as PAID`);
+    } else {
+      console.error(`Order ${orderId} not found for payment update`);
+    }
+  } else {
+    console.error('No orderId found in webhook data');
+    // Log the webhook data structure to debug
+    console.log('Webhook data structure:', JSON.stringify(webhookData, null, 2));
+  }
+
     } else if (
       webhookData.type === 'payment/failed' ||
       webhookData.type === 'payment.failed'
