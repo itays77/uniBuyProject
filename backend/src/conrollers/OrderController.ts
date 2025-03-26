@@ -211,6 +211,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
 };
 
 // UniPaas webhook handler
+// UniPaas webhook handler
 const unipaasWebhookHandler = async (req: Request, res: Response) => {
   try {
     // Extract headers and body
@@ -227,11 +228,9 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     // If body is a Buffer (from express.raw middleware), parse it
     if (Buffer.isBuffer(webhookData)) {
       try {
-        console.log(
-          'Complete webhook data:',
-          JSON.stringify(webhookData, null, 2)
-        );
+        console.log('Parsing buffer...');
         webhookData = JSON.parse(webhookData.toString('utf8'));
+        console.log('Parsed webhook data:', JSON.stringify(webhookData, null, 2));
       } catch (e: any) {
         console.error('Failed to parse webhook payload:', e);
         return res.status(400).json({ error: 'Invalid JSON payload' });
@@ -267,14 +266,12 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     if (
       webhookData.type === 'payment/succeeded' ||
       webhookData.type === 'payment.succeeded' ||
-      webhookData.type === 'Charge'
+      webhookData.type === 'Charge'  // Add this case
     ) {
-      // Extract order ID from metadata
-        const orderId =
-          webhookData.data?.metadata?.orderId ||
-          webhookData.metadata?.orderId ||
-          webhookData.data?.orderId ||
-          webhookData.orderId;
+      // Look for orderId in multiple possible locations
+      const orderId = webhookData.data?.metadata?.orderId || 
+                      webhookData.metadata?.orderId ||
+                      webhookData.orderId;
 
       if (orderId) {
         // Update the order status to PAID
@@ -282,7 +279,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
           orderId,
           {
             status: OrderStatus.PAID,
-            paymentId: webhookData.data.id || `webhook_${Date.now()}`,
+            paymentId: webhookData.data?.id || webhookData.id || `webhook_${Date.now()}`,
           },
           { new: true }
         );
@@ -293,14 +290,19 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
           console.error(`Order ${orderId} not found for payment update`);
         }
       } else {
-        console.error('No orderId found in payment/succeeded webhook metadata');
+        console.error('No orderId found in webhook data');
+        // Log the structure to help debugging
+        console.log('Webhook data structure:', JSON.stringify(webhookData, null, 2));
       }
     } else if (
       webhookData.type === 'payment/failed' ||
       webhookData.type === 'payment.failed'
     ) {
       // Handle failed payment
-      const orderId = webhookData.data?.metadata?.orderId;
+      const orderId = webhookData.data?.metadata?.orderId || 
+                      webhookData.metadata?.orderId ||
+                      webhookData.orderId;
+                      
       if (orderId) {
         console.log(`Payment failed for order ${orderId}`);
 
@@ -310,7 +312,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
           {
             status: OrderStatus.FAILED,
             failureReason:
-              webhookData.data.reason || 'Payment processing failed',
+              webhookData.data?.reason || webhookData.reason || 'Payment processing failed',
           },
           { new: true }
         );

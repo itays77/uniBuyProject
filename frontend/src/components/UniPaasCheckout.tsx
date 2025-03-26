@@ -118,13 +118,17 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
         components.on('paymentError', (e: any) => {
           console.error('Payment error:', e.detail);
           toast.error(
-            'Payment failed: ' + (e.detail.message || 'Unknown error')
+            'Payment failed: ' + (e.detail?.message || 'Unknown error')
           );
+          // Optionally navigate to order confirmation to show the failed status
+          navigate(`/order-confirmation/${orderId}`);
         });
 
         components.on('paymentCancel', (e: any) => {
           console.log('Payment cancelled:', e.detail);
           toast.info('Payment was cancelled');
+          // Add this line to navigate back to cart when payment is cancelled
+          navigate('/cart');
         });
 
         // Check if the container exists and mount the checkout component
