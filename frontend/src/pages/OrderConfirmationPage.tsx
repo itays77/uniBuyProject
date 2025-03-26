@@ -97,6 +97,7 @@ const OrderConfirmationPage = () => {
       ) {
         try {
           await updateOrderStatus(orderId, OrderStatus.PAID);
+          setTimeout(() => window.location.reload(), 1500);
           toast.success('Payment confirmed successfully!');
         } catch (error) {
           console.error('Failed to update payment status:', error);
