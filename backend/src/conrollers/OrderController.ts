@@ -140,12 +140,12 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         reference: order.orderNumber,
         email: customerEmail || user.email,
         description: `Order ${order.orderNumber}`,
-        success_url: `${process.env.FRONTEND_URL}/order-confirmation/${order._id}`,
+        successfulPaymentRedirect: `${process.env.FRONTEND_URL}/order-confirmation/${order._id}`,
         cancel_url: `${process.env.FRONTEND_URL}/cart`,
 
         consumer: {
           name: user.name || 'Customer',
-          reference: user._id.toString()
+          reference: user._id.toString(),
         },
         metadata: {
           orderId: order._id.toString(),
