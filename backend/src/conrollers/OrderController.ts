@@ -386,10 +386,37 @@ const getOrderById = async (req: Request, res: Response) => {
   }
 };
 
+const updateOrderStatus = async (req: Request, res: Response) => {
+  try {
+    const { orderId, status } = req.body;
+
+    if (!orderId || !status) {
+      return res
+        .status(400)
+        .json({ message: 'Order ID and status are required' });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json(order);
+  } catch (error: any) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ message: 'Error updating order status' });
+  }
+};
+
 export default {
   createOrder,
   createCheckoutSession,
   unipaasWebhookHandler,
   getMyOrders,
   getOrderById,
+  updateOrderStatus,
 };

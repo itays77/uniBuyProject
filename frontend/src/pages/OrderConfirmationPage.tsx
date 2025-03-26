@@ -23,6 +23,39 @@ import {
 } from 'lucide-react';
 import { OrderStatus } from '@/types';
 
+const useUpdateOrderStatus = () => {
+  const { getAccessTokenSilently } = useAuth0();
+
+  const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
+    try {
+      const accessToken = await getAccessTokenSilently();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/orders/update-status`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ orderId, status }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status');
+      throw error;
+    }
+  };
+
+  return { updateOrderStatus };
+};
+
 const OrderConfirmationPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -50,6 +83,29 @@ const OrderConfirmationPage = () => {
       }
     }
   }, [order, isOrderLoading, currentUser, isUserLoading, navigate]);
+
+  const { updateOrderStatus } = useUpdateOrderStatus();
+
+  // In useEffect to handle redirect from payment
+  useEffect(() => {
+    const handlePaymentRedirect = async () => {
+      if (
+        orderId &&
+        !isOrderLoading &&
+        order &&
+        order.status === OrderStatus.PENDING
+      ) {
+        try {
+          await updateOrderStatus(orderId, OrderStatus.PAID);
+          toast.success('Payment confirmed successfully!');
+        } catch (error) {
+          console.error('Failed to update payment status:', error);
+        }
+      }
+    };
+
+    handlePaymentRedirect();
+  }, [orderId, order, isOrderLoading]);
 
   // Handle not authenticated case
   if (!isAuthenticated) {

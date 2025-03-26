@@ -50,6 +50,11 @@ router.post(
   OrderController.createCheckoutSession as RequestHandler
 );
 
+router.post(
+  '/update-status',
+  OrderController.updateOrderStatus as RequestHandler
+);
+
 // Simulate payment endpoints (for testing)
 router.post(
   '/simulate-payment/:orderId',
