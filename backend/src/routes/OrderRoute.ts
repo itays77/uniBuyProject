@@ -50,7 +50,6 @@ router.post(
   OrderController.createCheckoutSession as RequestHandler
 );
 
-
 // Simulate payment endpoints (for testing)
 router.post(
   '/simulate-payment/:orderId',

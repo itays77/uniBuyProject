@@ -20,9 +20,9 @@ type CreateCheckoutSessionRequest = {
 type CheckoutSessionResponse = {
   sessionToken: string;
   sessionId: string;
-  shortLink?: string; 
-  checkoutUrl?: string; 
-  fallbackMode?: boolean; 
+  shortLink?: string;  // Add this propertying;
+  checkoutUrl?: string; // Keep this for the fallback simulation;
+  fallbackMode?: boolean; // 
 };
 
 // Create a new order

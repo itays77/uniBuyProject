@@ -134,7 +134,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       console.log('Using API key:', process.env.UNIPAAS_API_KEY ? process.env.UNIPAAS_API_KEY.substring(0, 5) + '...' : 'Not set');
 
       const payload = {
-        amount: Math.round(order.total),
+        amount: Math.round(order.total), // Convert to cents
         currency: 'USD',
         country: 'US', // You can adjust based on user location
         reference: order.orderNumber,
@@ -142,7 +142,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         description: `Order ${order.orderNumber}`,
         consumer: {
           name: user.name || 'Customer',
-          reference: user._id.toString(),
+          reference: user._id.toString()
         },
         metadata: {
           orderId: order._id.toString(),
