@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   CreditCard,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,6 +65,8 @@ const CartPage = () => {
     setIsProcessing(true);
 
     try {
+      console.log('Starting checkout process...');
+
       // Step 1: Create the order
       const orderItems = cartItems.map((item) => ({
         itemNumber: item.itemNumber,
@@ -71,6 +74,7 @@ const CartPage = () => {
       }));
 
       const order = await createOrder({ items: orderItems });
+      console.log('Order created:', order);
       toast.success('Order created successfully!');
 
       // Step 2: Create checkout session
@@ -81,19 +85,37 @@ const CartPage = () => {
 
       console.log('Checkout session created:', session);
 
-      // Always use the redirect approach
+      // Clear the cart since order is created
+      clearCart();
+
+      // IMPORTANT: Handle different response types from checkout session
       if (session.shortLink) {
-        // Use UniPaas hosted checkout - most reliable option
+        // Option 1: Use the direct link to UniPaas hosted checkout (most reliable)
         console.log('Redirecting to UniPaas checkout:', session.shortLink);
-        clearCart();
-        window.location.href = session.shortLink;
+        toast.info('Redirecting to secure payment page...', {
+          duration: 2000,
+          icon: <ExternalLink className="h-4 w-4" />,
+        });
+
+        // Short delay to let the toast be visible
+        setTimeout(() => {
+          if (typeof session.shortLink === 'string') {
+            window.location.href = session.shortLink;
+          }
+        }, 1000);
+      } else if (session.sessionToken) {
+        // Option 2: Use embedded checkout component within our app
+        console.log('Navigating to embedded checkout with session token');
+        toast.info('Loading payment form...');
+        navigate(`/checkout/${order._id}?token=${session.sessionToken}`);
       } else if (session.checkoutUrl) {
-        // Use simulation page as fallback
+        // Option 3: Fallback to simulation mode
         console.log('Redirecting to simulation page:', session.checkoutUrl);
-        clearCart();
+        toast.info('Redirecting to payment simulation...');
         window.location.href = session.checkoutUrl;
       } else {
-        throw new Error('No valid checkout URL received');
+        // No valid checkout options
+        throw new Error('No valid checkout URL or token received');
       }
     } catch (error) {
       console.error('Failed to process checkout:', error);
@@ -296,8 +318,17 @@ const CartPage = () => {
                 onClick={handleInitiateCheckout}
                 disabled={isProcessing}
               >
-                <CreditCard className="h-4 w-4" />
-                {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Proceed to Checkout
+                  </>
+                )}
               </Button>
 
               <p className="text-xs text-gray-500 text-center">

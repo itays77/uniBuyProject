@@ -9,6 +9,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import AdminPage from './pages/AdminPage';
 import ProtectedRoute from './auth/ProtectedRoute';
 import MyOrdersPage from './pages/MyOrdersPage';
+import CheckoutPage from './pages/CheckoutPage';
 
 
 
@@ -44,6 +45,15 @@ const AppRoutes = () => {
           element={
             <Layout>
               <CartPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/checkout/:orderId"
+          element={
+            <Layout>
+              <CheckoutPage />
             </Layout>
           }
         />
