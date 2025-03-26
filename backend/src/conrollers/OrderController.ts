@@ -263,40 +263,42 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
     });
 
     // Process webhook based on its type
-    if (
-      webhookData.type === 'payment/succeeded' ||
-      webhookData.type === 'payment.succeeded' ||
-      webhookData.type === 'Charge'  // Add this case
-    ) {
-      // Look for orderId in multiple possible locations
-      const orderId = webhookData.data?.metadata?.orderId || 
-                  webhookData.metadata?.orderId ||
-                  webhookData.orderId;
+    // In your OrderController.ts, update the unipaasWebhookHandler function
+      if (
+        webhookData.type === 'payment/succeeded' ||
+        webhookData.type === 'payment.succeeded' ||
+        webhookData.type === 'Charge'  // Add this case for handling Charge events
+      ) {
+        // For Charge events, the orderId might be in metadata
+        const orderId = webhookData.data?.metadata?.orderId || 
+                        webhookData.metadata?.orderId ||
+                        webhookData.orderId;
 
-  if (orderId) {
-    console.log(`Updating order ${orderId} to PAID status from ${webhookData.type} event`);
-    // Update the order status to PAID
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      {
-        status: OrderStatus.PAID,
-        paymentId: webhookData.data?.id || webhookData.id || `webhook_${Date.now()}`,
-      },
-      { new: true }
-    );
+        if (orderId) {
+          console.log(`Updating order ${orderId} to PAID status from ${webhookData.type} event`);
+          // Update the order status to PAID
+          const updatedOrder = await Order.findByIdAndUpdate(
+            orderId,
+            {
+              status: OrderStatus.PAID,
+              paymentId: webhookData.data?.id || webhookData.id || `webhook_${Date.now()}`,
+            },
+            { new: true }
+          );
 
-    if (updatedOrder) {
-      console.log(`Order ${orderId} marked as PAID`);
-    } else {
-      console.error(`Order ${orderId} not found for payment update`);
-    }
-  } else {
-    console.error('No orderId found in webhook data');
-    // Log the webhook data structure to debug
-    console.log('Webhook data structure:', JSON.stringify(webhookData, null, 2));
-  }
+          if (updatedOrder) {
+            console.log(`Order ${orderId} marked as PAID`);
+          } else {
+            console.error(`Order ${orderId} not found for payment update`);
+          }
+        } else {
+          console.error('No orderId found in webhook data');
+          // Log the webhook data structure to debug
+          console.log('Webhook data structure:', JSON.stringify(webhookData, null, 2));
+        }
+      }
 
-    } else if (
+     else if (
       webhookData.type === 'payment/failed' ||
       webhookData.type === 'payment.failed'
     ) {
