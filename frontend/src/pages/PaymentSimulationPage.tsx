@@ -49,7 +49,6 @@ const PaymentSimulationPage = () => {
 
       toast.success('Payment processed successfully!');
 
-      // Redirect to order confirmation page
       navigate(`/order-confirmation/${orderId}`);
     } catch (error) {
       console.error('Payment simulation error:', error);
@@ -62,7 +61,6 @@ const PaymentSimulationPage = () => {
     try {
       setIsProcessing(true);
 
-      // Call the new endpoint for payment failure simulation
       const response = await fetch(
         `${API_BASE_URL}/api/orders/simulate-payment-failure/${orderId}`,
         {
@@ -82,7 +80,6 @@ const PaymentSimulationPage = () => {
 
       toast.error('Payment was declined');
 
-      // Redirect to order confirmation page anyway to show the failed status
       navigate(`/order-confirmation/${orderId}`);
     } catch (error) {
       console.error('Payment failure simulation error:', error);

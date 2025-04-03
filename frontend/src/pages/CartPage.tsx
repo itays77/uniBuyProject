@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   CreditCard,
   Loader2,
-  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,7 +66,7 @@ const CartPage = () => {
     try {
       console.log('Starting checkout process...');
 
-      // Step 1: Create the order
+      
       const orderItems = cartItems.map((item) => ({
         itemNumber: item.itemNumber,
         quantity: item.quantity,
@@ -77,7 +76,7 @@ const CartPage = () => {
       console.log('Order created:', order);
       toast.success('Order created successfully!');
 
-      // Step 2: Create checkout session
+
       const session = await createCheckoutSession({
         orderId: order._id,
         customerEmail: user?.email,
@@ -85,36 +84,24 @@ const CartPage = () => {
 
       console.log('Checkout session created:', session);
 
-      // Clear the cart since order is created
       clearCart();
 
       //Handle different response types from checkout session
       if (session.shortLink) {
-        // Option 1: Use the direct link to UniPaas hosted checkout (most reliable)
         console.log('Redirecting to UniPaas checkout:', session.shortLink);
-        toast.info('Redirecting to secure payment page...', {
-          duration: 2000,
-          icon: <ExternalLink className="h-4 w-4" />,
-        });
 
-        // Short delay to let the toast be visible
         setTimeout(() => {
           if (typeof session.shortLink === 'string') {
             window.location.href = session.shortLink;
           }
         }, 1000);
       } else if (session.sessionToken) {
-        // Option 2: Use embedded checkout component within our app
         console.log('Navigating to embedded checkout with session token');
-        toast.info('Loading payment form...');
         navigate(`/checkout/${order._id}?token=${session.sessionToken}`);
       } else if (session.checkoutUrl) {
-        // Option 3: Fallback to simulation mode
         console.log('Redirecting to simulation page:', session.checkoutUrl);
-        toast.info('Redirecting to payment simulation...');
         window.location.href = session.checkoutUrl;
       } else {
-        // No valid checkout options
         throw new Error('No valid checkout URL or token received');
       }
     } catch (error) {

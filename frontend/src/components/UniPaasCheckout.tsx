@@ -26,10 +26,10 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
       return;
     }
 
-    // Create a script element for the UniPaas SDK
+    
     const loadScript = () => {
       return new Promise<void>((resolve, reject) => {
-        // Check if script is already loaded
+       
         if (document.getElementById('unipaas-script')) {
           console.log('UniPaas script already loaded');
           resolve();
@@ -67,14 +67,13 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
           document.getElementById('unipaas-checkout-container')
         );
 
-        // Check if the unipaas object is available in the window
+        
         if (!window.unipaas) {
           throw new Error(
             'UniPaas script loaded but unipaas object not available'
           );
         }
 
-        // Avoid mounting multiple times
         if (mountedRef.current) {
           console.log('Checkout already mounted, skipping');
           return;
@@ -82,7 +81,6 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
 
         console.log('Initializing UniPaas with token');
 
-        // Configure theme
         const config = {
           theme: {
             type: 'light',
@@ -104,11 +102,9 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
           },
         };
 
-        // Initialize components 
         console.log('Creating components with session token');
         const components = window.unipaas.components(sessionToken, config);
 
-        // Set up event listeners for payment status updates
         components.on('paymentSuccess', (e: any) => {
           console.log('Payment successful:', e.detail);
           toast.success('Payment successful!');
@@ -120,7 +116,6 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
           toast.error(
             'Payment failed: ' + (e.detail?.message || 'Unknown error')
           );
-          // Optionally navigate to order confirmation to show the failed status
           navigate(`/order-confirmation/${orderId}`);
         });
 
@@ -130,7 +125,6 @@ const UniPaasCheckout = ({ sessionToken, orderId }: UniPaasCheckoutProps) => {
           navigate('/cart');
         });
 
-        // Check if the container exists and mount the checkout component
         if (checkoutRef.current) {
           console.log('Creating checkout component');
           const checkout = components.create('checkout');

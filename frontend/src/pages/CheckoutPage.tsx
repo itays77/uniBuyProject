@@ -1,4 +1,3 @@
-// CheckoutPage.tsx
 import { useParams, useSearchParams } from 'react-router-dom';
 import UniPaasCheckout from '@/components/UniPaasCheckout';
 import { useGetOrderById } from '@/api/OrderApi';

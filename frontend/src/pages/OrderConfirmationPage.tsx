@@ -67,7 +67,7 @@ const OrderConfirmationPage = () => {
   // Check if user has permission to view this order
   useEffect(() => {
     if (!isOrderLoading && !isUserLoading && order && currentUser) {
-      // Compare MongoDB IDs (convert both to strings to ensure format matching)
+      // Compare MongoDB IDs 
       const orderUserId = String(order.user);
       const currentUserId = String(currentUser._id);
 
@@ -135,7 +135,6 @@ const OrderConfirmationPage = () => {
     );
   }
 
-  // Show loading state while fetching order or user data
   if (isOrderLoading || isUserLoading) {
     return (
       <div className="container mx-auto py-12 px-4 text-center">
@@ -151,7 +150,6 @@ const OrderConfirmationPage = () => {
     );
   }
 
-  // Handle order not found
   if (!order) {
     return (
       <div className="container mx-auto py-12 px-4 text-center">

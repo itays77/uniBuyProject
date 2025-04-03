@@ -67,7 +67,6 @@ const createOrder = async (req: Request, res: Response) => {
       }))
     );
 
-    // Create the order with PENDING status
     const newOrder = new Order({
       user: userId,
       items: orderItems,
@@ -95,7 +94,6 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Order ID is required' });
     }
 
-    // Get the order
     const order = await Order.findById(orderId);
 
     if (!order) {
@@ -108,14 +106,12 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         .json({ message: 'Order is not in PENDING status' });
     }
 
-    // Check if user has permission to access this order
     if (order.user.toString() !== req.userId) {
       return res
         .status(403)
         .json({ message: 'Not authorized to access this order' });
     }
 
-    // Get user details for the checkout
     const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -128,7 +124,6 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     });
 
     try {
-      // Create a payment with UniPaas API to get the session token
       const unipaasUrl = 'https://sandbox.unipaas.com/platform/pay-ins/checkout';
       console.log(`Creating UniPaas checkout session: ${unipaasUrl}`);
       console.log('Using API key:', process.env.UNIPAAS_API_KEY ? process.env.UNIPAAS_API_KEY.substring(0, 5) + '...' : 'Not set');
@@ -167,11 +162,10 @@ const createCheckoutSession = async (req: Request, res: Response) => {
 
       console.log('UniPaas response:', response.data);
       
-      // Update the order with the session ID
       order.paymentSessionId = response.data.id;
       await order.save();
 
-      // Return both sessionToken and shortLink to the frontend
+      
       res.status(200).json({
         sessionToken: response.data.sessionToken,
         sessionId: response.data.id,
@@ -184,7 +178,6 @@ const createCheckoutSession = async (req: Request, res: Response) => {
         console.error('Error response data:', error.response.data);
       }
       
-      // If UniPaas API fails
       console.log('Falling back to payment simulation mode');
       const paymentSessionId = `direct_${Date.now()}`;
       order.paymentSessionId = paymentSessionId;
@@ -213,18 +206,18 @@ const createCheckoutSession = async (req: Request, res: Response) => {
 // UniPaas webhook handler
 const unipaasWebhookHandler = async (req: Request, res: Response) => {
   try {
-    // Extract headers and body
+
     const { headers, body } = req;
     const signedHeader = headers['x-hmac-sha256'] as string;
 
-    // Log the raw webhook payload for debugging
+    
     console.log('Received webhook payload:', JSON.stringify(body));
 
-    // For webhook processing, we need to ensure the body is parsed correctly
+    
     let webhookData = body;
     console.log('Complete webhook data:', JSON.stringify(webhookData, null, 2));
 
-    // If body is a Buffer (from express.raw middleware), parse it
+    
     if (Buffer.isBuffer(webhookData)) {
       try {
         console.log('Parsing buffer...');
@@ -236,7 +229,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       }
     }
 
-    // Verify the webhook signature if it exists
+    
     if (signedHeader && process.env.UNIPAAS_SECRET_KEY) {
       const hash = createHmac('sha256', process.env.UNIPAAS_SECRET_KEY)
         .update(
@@ -248,7 +241,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       const buff = Buffer.from(hash);
       const calculated = buff.toString('base64');
 
-      // If signature doesn't match, log but still accept the webhook in dev environment
+      
       if (calculated !== signedHeader) {
         console.warn(
           'Warning: Failed to verify webhook signature - accepting anyway in development mode'
@@ -261,20 +254,20 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       data: webhookData.data,
     });
 
-    // Process webhook based on its type
+    
       if (
         webhookData.type === 'payment/succeeded' ||
         webhookData.type === 'payment.succeeded' ||
         webhookData.type === 'Charge'  
       ) {
-        // For Charge events, the orderId might be in metadata
+        
         const orderId = webhookData.data?.metadata?.orderId || 
                         webhookData.metadata?.orderId ||
                         webhookData.orderId;
 
         if (orderId) {
           console.log(`Updating order ${orderId} to PAID status from ${webhookData.type} event`);
-          // Update the order status to PAID
+          
           const updatedOrder = await Order.findByIdAndUpdate(
             orderId,
             {
@@ -291,7 +284,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
           }
         } else {
           console.error('No orderId found in webhook data');
-          // Log the webhook data structure to debug
+          
           console.log('Webhook data structure:', JSON.stringify(webhookData, null, 2));
         }
       }
@@ -300,7 +293,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       webhookData.type === 'payment/failed' ||
       webhookData.type === 'payment.failed'
     ) {
-      // Handle failed payment
+      
       const orderId = webhookData.data?.metadata?.orderId || 
                       webhookData.metadata?.orderId ||
                       webhookData.orderId;
@@ -308,7 +301,7 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       if (orderId) {
         console.log(`Payment failed for order ${orderId}`);
 
-        // Update the order with FAILED status
+        
         await Order.findByIdAndUpdate(
           orderId,
           {
@@ -323,13 +316,12 @@ const unipaasWebhookHandler = async (req: Request, res: Response) => {
       console.log(`Unhandled webhook type: ${webhookData.type}`);
     }
 
-    // Always respond with 200 to acknowledge receipt
+   
     res.status(200).json({ received: true });
   } catch (error: any) {
     console.error('Error handling webhook:', error);
 
     // Still return 200 to prevent UniPaas from retrying
-    // But log the error for debugging
     res.status(200).json({
       received: true,
       error: 'Error processing webhook, but acknowledged receipt',
