@@ -89,15 +89,9 @@ const CartPage = () => {
       clearCart();
 
       //Handle different response types from checkout session
-      console.log('Processing checkout options:', {
-        hasShortLink: !!session.shortLink,
-        hasSessionToken: !!session.sessionToken,
-        hasCheckoutUrl: !!session.checkoutUrl,
-      });
-
       if (session.shortLink) {
         // Option 1: Use the direct link to UniPaas hosted checkout (most reliable)
-        console.log('USING HOSTED CHECKOUT (shortLink):', session.shortLink);
+        console.log('Redirecting to UniPaas checkout:', session.shortLink);
         toast.info('Redirecting to secure payment page...', {
           duration: 2000,
           icon: <ExternalLink className="h-4 w-4" />,
@@ -111,24 +105,16 @@ const CartPage = () => {
         }, 1000);
       } else if (session.sessionToken) {
         // Option 2: Use embedded checkout component within our app
-        console.log('USING EMBEDDED CHECKOUT (sessionToken):', {
-          orderId: order._id,
-          tokenLength: session.sessionToken.length,
-          tokenPreview: session.sessionToken.substring(0, 20) + '...',
-        });
+        console.log('Navigating to embedded checkout with session token');
         toast.info('Loading payment form...');
         navigate(`/checkout/${order._id}?token=${session.sessionToken}`);
       } else if (session.checkoutUrl) {
         // Option 3: Fallback to simulation mode
-        console.log(
-          'USING SIMULATION CHECKOUT (fallback):',
-          session.checkoutUrl
-        );
+        console.log('Redirecting to simulation page:', session.checkoutUrl);
         toast.info('Redirecting to payment simulation...');
         window.location.href = session.checkoutUrl;
       } else {
         // No valid checkout options
-        console.error('NO VALID CHECKOUT OPTION RECEIVED:', session);
         throw new Error('No valid checkout URL or token received');
       }
     } catch (error) {
